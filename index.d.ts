@@ -17,9 +17,25 @@ export interface FilterResponse extends Response {
     [other: string]: any;
 }
 
+export interface ExpressWinstonRequest extends Request {
+    _routeWhitelists: {
+        body: string[];
+        req: string[];
+        res: string[];
+    };
+}
+
+export interface ExpressWinstonResponse extends Response {
+    responseTime: number;
+    body?: string | Record<string, any>;
+}
+
 export type ExceptionToMetaFunction = (err: Error) => object;
-export type DynamicMetaFunction = (req: Request, res: Response, err: Error) => object;
-export type DynamicLevelFunction = (req: Request, res: Response, err: Error) => string;
+export type DynamicMetaFunction = (req: Request, res: ExpressWinstonResponse, err: Error) => Record<string, any>;
+export type DynamicLevelFunction = (req: Request, res: ExpressWinstonResponse, err: Error) => string;
+export type DynamicMetaFunctionError = (req: Request, res: Response, err: Error) => Record<string, any>;
+export type DynamicLevelFunctionError = (req: Request, res: Response, err: Error) => string;
+
 export type RequestFilter = (req: FilterRequest, propName: string) => any;
 export type ResponseFilter = (res: FilterResponse, propName: string) => any;
 export type RouteFilter = (req: Request, res: Response) => boolean;
@@ -55,7 +71,7 @@ export interface BaseLoggerOptions {
     headerBlacklist?: string[];
     skip?: RouteFilter;
     statusLevels?: Boolean | StatusLevels;
-}   
+}
 
 export interface LoggerOptionsWithTransports extends BaseLoggerOptions {
     transports: Transport[];
@@ -71,10 +87,10 @@ export function logger(options: LoggerOptions): Handler;
 
 export interface BaseErrorLoggerOptions {
     baseMeta?: object;
-    dynamicMeta?: DynamicMetaFunction;
+    dynamicMeta?: DynamicMetaFunctionError;
     exceptionToMeta?: ExceptionToMetaFunction;
     format?: Format;
-    level?: string | DynamicLevelFunction;
+    level?: string | DynamicLevelFunctionError;
     meta?: boolean;
     metaField?: string;
     requestField?: string;
@@ -114,11 +130,3 @@ export let defaultRequestFilter: RequestFilter;
 export let defaultResponseFilter: ResponseFilter;
 
 export function defaultSkip(): boolean;
-
-export interface ExpressWinstonRequest extends Request {
-    _routeWhitelists: {
-        body: string[];
-        req: string[];
-        res: string[];
-    };
-}
